@@ -1,0 +1,15 @@
+{
+  "session_id": "20250301_164419",
+  "model": "claude-3-5-sonnet-20240620",
+  "timestamp": "2025-03-01T16:45:03.275164",
+  "messages": [
+    {
+      "role": "user",
+      "content": "give me a comprehensive asessment of the latest developments in percieved covert action program. Infer, from your knowledge and context provdied what are the likely title 50 operations happening currently"
+    },
+    {
+      "role": "assistant",
+      "content": "Error generating response: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}}"
+    }
+  ]
+}

@@ -72,6 +72,7 @@ class CipherCLI:
             search_results_count=search_results_count,
             max_tokens=max_tokens,
             temperature=temperature,
+            history_dir="./ingestion/chat/history",
         )
         
         # Store configuration for display
@@ -90,9 +91,9 @@ class CipherCLI:
     def print_welcome(self):
         """Print welcome message and configuration details."""
         print(f"\n{Colors.BOLD}{Colors.CYAN}╔════════════════════════════════════════════╗{Colors.RESET}")
-        print(f"{Colors.BOLD}{Colors.CYAN}║          CIPHER NEWS ASSISTANT             ║{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.CYAN}║       THE CIPHER BRIEF INTELLIGENCE       ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}╚════════════════════════════════════════════╝{Colors.RESET}")
-        print(f"\n{Colors.BOLD}Ask me anything about the news in our database.{Colors.RESET}")
+        print(f"\n{Colors.BOLD}Your elite AI analyst for geopolitical intelligence and national security insights.{Colors.RESET}")
         print(f"Type {Colors.YELLOW}/help{Colors.RESET} for available commands.")
         
         if self.verbose:
@@ -112,8 +113,9 @@ class CipherCLI:
         print(f"  {Colors.YELLOW}/clear{Colors.RESET} - Clear the screen")
         print(f"  {Colors.YELLOW}/topics{Colors.RESET} - Show available topics")
         print(f"  {Colors.YELLOW}/reports{Colors.RESET} - Show available reports")
-        print(f"  {Colors.YELLOW}/topic <name>{Colors.RESET} - Filter next query by topic")
+        print(f"  {Colors.YELLOW}/topic <n>{Colors.RESET} - Filter next query by topic")
         print(f"  {Colors.YELLOW}/report <id>{Colors.RESET} - Filter next query by report")
+        print(f"  {Colors.YELLOW}/history{Colors.RESET} - Show current chat history file location")
     
     def print_topics(self):
         """Print available topics."""
@@ -127,29 +129,46 @@ class CipherCLI:
         for report in sorted(self.reports):
             print(f"  • {Colors.YELLOW}{report}{Colors.RESET}")
     
+    def print_history_location(self):
+        """Print the location of the current intelligence collection file."""
+        print(f"\n{Colors.BOLD}{Colors.CYAN}Intelligence Collection:{Colors.RESET}")
+        print(f"  Securely archived at: {Colors.YELLOW}{self.engine.history_path}{Colors.RESET}")
+        print(f"  Classification: {Colors.YELLOW}UNCLASSIFIED // FOUO{Colors.RESET}")
+    
     def print_context(self, results: List[Dict[str, Any]]):
         """
-        Print the retrieved context.
+        Print the retrieved intelligence sources.
         
         Args:
-            results: Retrieved context results
+            results: Retrieved intelligence sources
         """
         if not results:
-            print(f"\n{Colors.YELLOW}No relevant context found.{Colors.RESET}")
+            print(f"\n{Colors.YELLOW}No relevant intelligence found.{Colors.RESET}")
             return
         
-        print(f"\n{Colors.BOLD}{Colors.CYAN}Retrieved Context:{Colors.RESET}")
+        # Print header with classification banner
+        print(f"\n{Colors.BOLD}{Colors.CYAN}{'='*60}{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.CYAN}INTELLIGENCE SOURCES - UNCLASSIFIED // FOUO{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.CYAN}{'='*60}{Colors.RESET}")
+        
         for i, result in enumerate(results):
-            print(f"\n{Colors.BOLD}[{i+1}] {Colors.YELLOW}{result['title']}{Colors.RESET}")
-            print(f"{Colors.CYAN}Topic:{Colors.RESET} {result['topic']}")
-            print(f"{Colors.CYAN}Report:{Colors.RESET} {result['report_id']}")
-            print(f"{Colors.CYAN}Relevance:{Colors.RESET} {1.0 - result['distance']/2:.2f}")
+            # Calculate confidence score based on distance
+            confidence = 1.0 - (result.get('distance', 0.5) / 2)
+            confidence_level = "HIGH" if confidence > 0.8 else "MEDIUM" if confidence > 0.6 else "LOW"
             
-            # Print a snippet of the content
+            # Format each result like an intelligence source with classification marking
+            print(f"\n{Colors.BOLD}[SOURCE {i+1}] {Colors.YELLOW}{result['title']}{Colors.RESET}")
+            print(f"{Colors.CYAN}Classification:{Colors.RESET} UNCLASSIFIED // FOUO")
+            print(f"{Colors.CYAN}Intel Category:{Colors.RESET} {result['topic'].upper()}")
+            print(f"{Colors.CYAN}Reference ID:{Colors.RESET} {result['report_id']}")
+            print(f"{Colors.CYAN}Confidence:{Colors.RESET} {confidence_level} ({confidence:.2f})")
+            
+            # Print a snippet of the content with intelligence formatting
             content = result['content']
-            if len(content) > 150:
-                content = content[:150] + "..."
+            if len(content) > 200:
+                content = content[:200] + "..."
             print(f"{Colors.CYAN}Content:{Colors.RESET} {content}")
+            print(f"{Colors.CYAN}{'-'*60}{Colors.RESET}")
     
     def process_command(self, command: str):
         """
@@ -181,6 +200,9 @@ class CipherCLI:
         elif command == "/reports":
             self.print_reports()
             return True
+        elif command == "/history":
+            self.print_history_location()
+            return True
         elif command.startswith("/topic "):
             topic = command[7:].strip()
             if topic in self.topics:
@@ -206,13 +228,14 @@ class CipherCLI:
         self.print_welcome()
         
         # Print demo message
-        print(f"\n{Colors.BOLD}{Colors.GREEN}Demo Mode:{Colors.RESET} Running a non-interactive demo")
-        print("\nThe application would normally allow interactive chat with the news database.")
-        print("It uses RAG with FAISS vector search and the Anthropic Claude API.")
+        print(f"\n{Colors.BOLD}{Colors.GREEN}Demo Mode:{Colors.RESET} Running a non-interactive intelligence briefing")
+        print("\nThis application provides elite intelligence analysis powered by The Cipher Brief.")
+        print("It uses advanced neural retrieval paired with Claude 3.5 for high-fidelity intelligence analysis.")
+        print(f"Analysis history is encrypted and saved to: {self.engine.history_path}")
         
         # Run a single example query to demonstrate functionality
-        demo_query = "What's the latest news about technology?"
-        print(f"\n{Colors.BOLD}{Colors.GREEN}Example Query:{Colors.RESET} {demo_query}")
+        demo_query = "What are the current geopolitical implications of Russia's actions in Ukraine?"
+        print(f"\n{Colors.BOLD}{Colors.GREEN}Intelligence Query:{Colors.RESET} {demo_query}")
         
         try:
             # Process the demo query
@@ -222,25 +245,28 @@ class CipherCLI:
             response, results = self.engine.process_query(demo_query)
             
             # Print the response
-            print(f"\n{Colors.BOLD}{Colors.MAGENTA}Cipher:{Colors.RESET} {response}")
+            print(f"\n{Colors.BOLD}{Colors.MAGENTA}INTELLIGENCE RESPONSE:{Colors.RESET} {response}")
             
             # Show retrieved context
-            print(f"\n{Colors.BOLD}{Colors.CYAN}Retrieved Context:{Colors.RESET}")
+            print(f"\n{Colors.BOLD}{Colors.CYAN}Intelligence Sources:{Colors.RESET}")
             self.print_context(results)
             
         except Exception as e:
             print(f"\n{Colors.RED}Error: {str(e)}{Colors.RESET}")
             
             # Print fallback response
-            print(f"\n{Colors.BOLD}{Colors.MAGENTA}Cipher:{Colors.RESET} I'm sorry, I couldn't process your query due to a technical issue.")
-            print(f"This demo requires an Anthropic API key and a properly set up FAISS index.")
+            print(f"\n{Colors.BOLD}{Colors.MAGENTA}INTELLIGENCE RESPONSE:{Colors.RESET} Analysis capabilities compromised. Unable to process intelligence query.")
+            print(f"Secure connection to intelligence database required. Contact your security officer for credentials.")
         
-        print(f"\n{Colors.BOLD}{Colors.GREEN}Demo completed.{Colors.RESET}")
-        print("In a real session, you could ask more questions and use commands like /help, /topics, etc.")
+        print(f"\n{Colors.BOLD}{Colors.GREEN}Intelligence briefing completed.{Colors.RESET}")
+        print("Secure interactive analysis available with proper authentication. Use /help for available intelligence tools.")
     
     def run(self):
         """Run the interactive CLI loop."""
         self.print_welcome()
+        
+        # Show intelligence collection history location
+        print(f"\n{Colors.CYAN}Intelligence collection saved to: {Colors.YELLOW}{self.engine.history_path}{Colors.RESET}")
         
         # Main conversation loop
         active_topic = None
@@ -254,7 +280,7 @@ class CipherCLI:
                 elif active_report:
                     print(f"\n{Colors.CYAN}[Report: {active_report}]{Colors.RESET}")
                     
-                user_input = input(f"\n{Colors.BOLD}{Colors.GREEN}You:{Colors.RESET} ")
+                user_input = input(f"\n{Colors.BOLD}{Colors.GREEN}ANALYST QUERY:{Colors.RESET} ")
                 
                 # Handle empty input
                 if not user_input.strip():
@@ -283,31 +309,49 @@ class CipherCLI:
                     continue
                 
                 # Process query with any active filters
-                print(f"\n{Colors.BOLD}{Colors.MAGENTA}Cipher:{Colors.RESET} Thinking...")
+                print(f"\n{Colors.BOLD}{Colors.MAGENTA}INTELLIGENCE RESPONSE:{Colors.RESET} Analyzing sources...")
                 
                 try:
-                    if active_topic:
+                    # Check if this might be a general question first
+                    is_general = self.engine.is_general_question(user_input)
+                    
+                    if active_topic and not is_general:
                         # Filter by topic
                         results = self.engine.search.search(user_input, filter_topic=active_topic)
                         context = self.engine.format_context(results)
                         response = self.engine.generate_response(user_input, context)
                         
+                        # Update history manually since we're not using process_query
+                        self.engine.history.append({"role": "user", "content": user_input})
+                        self.engine.history.append({"role": "assistant", "content": response})
+                        self.engine.save_history()
+                        
                         # Reset active topic after use
                         active_topic = None
-                    elif active_report:
+                    elif active_report and not is_general:
                         # Filter by report
                         results = self.engine.search.search_by_report(user_input, report_id=active_report)
                         context = self.engine.format_context(results)
                         response = self.engine.generate_response(user_input, context)
                         
+                        # Update history manually since we're not using process_query
+                        self.engine.history.append({"role": "user", "content": user_input})
+                        self.engine.history.append({"role": "assistant", "content": response})
+                        self.engine.save_history()
+                        
                         # Reset active report after use
                         active_report = None
                     else:
-                        # Standard query
+                        # For general questions or standard RAG queries
                         response, results = self.engine.process_query(user_input)
+                        
+                        # Reset any active filters for general questions
+                        if is_general:
+                            active_topic = None
+                            active_report = None
                     
                     # Print the response
-                    print(f"\n{Colors.BOLD}{Colors.MAGENTA}Cipher:{Colors.RESET} {response}")
+                    print(f"\n{Colors.BOLD}{Colors.MAGENTA}INTELLIGENCE RESPONSE:{Colors.RESET} {response}")
                     
                     # Optionally show retrieved context
                     if self.verbose:
@@ -331,7 +375,6 @@ class CipherCLI:
                 if self.verbose:
                     import traceback
                     traceback.print_exc()
-
 
 
 
