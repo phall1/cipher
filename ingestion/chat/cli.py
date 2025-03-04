@@ -17,7 +17,7 @@ project_root = str(Path(__file__).resolve().parents[2])
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from ingestion.chat.rag import RAGEngine
+from ingestion.chat.rag_compat import RAGEngine
 
 
 class Colors:

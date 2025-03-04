@@ -13,7 +13,8 @@ project_root = str(Path(__file__).resolve().parents[1])
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from ingestion.chat.rag import RAGEngine, ResponseCache
+from ingestion.chat.rag_compat import RAGEngine
+from ingestion.rag.components.cache import SemanticResponseCache as ResponseCache
 
 
 class TestResponseCache(unittest.TestCase):

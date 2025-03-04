@@ -44,7 +44,7 @@ def demo_rag():
     This allows testing the flow without making actual API calls.
     """
     from unittest.mock import MagicMock, patch
-    from ingestion.chat.rag import RAGEngine
+    from ingestion.chat.rag_compat import RAGEngine
     
     display_progress("Setting up mock RAG engine")
     
@@ -125,7 +125,7 @@ def run_interactive_test():
     Run an interactive test that lets the user try the RAG engine.
     Uses actual API if available, otherwise uses mock.
     """
-    from ingestion.chat.rag import RAGEngine
+    from ingestion.chat.rag_compat import RAGEngine
     
     display_progress("Setting up RAG engine for interactive testing")
     

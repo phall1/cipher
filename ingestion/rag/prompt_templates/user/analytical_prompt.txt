@@ -1,0 +1,28 @@
+INTELLIGENCE QUERY: $query
+
+RETRIEVED INTELLIGENCE:
+$context
+
+PRELIMINARY INTELLIGENCE ASSESSMENT:
+Overall relevance: $relevance
+
+Key information points:
+$key_points
+
+Known intelligence gaps:
+$gaps
+
+Source reliability assessment:
+$source_reliability
+
+ANALYTICAL GUIDANCE:
+1. Provide a structured intelligence analysis based strictly on the retrieved information.
+   - Begin with key judgments or a concise executive summary
+   - Focus on the most reliable and relevant information
+   - Address the identified intelligence gaps explicitly
+   - Be clear about confidence levels in your assessment
+   - $citation_instruction
+
+2. Maintain appropriate classification handling - treat all information as sensitive but unclassified (SBU)
+
+3. Craft a response that would be valuable to a high-level decision maker.
