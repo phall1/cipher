@@ -24,6 +24,9 @@ import sys
 import os
 from pathlib import Path
 
+# Disable tokenizers parallelism warning
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 # Add project root to the path if needed
 project_root = str(Path(__file__).resolve().parent)
 if project_root not in sys.path:

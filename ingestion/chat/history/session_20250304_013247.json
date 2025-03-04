@@ -1,0 +1,31 @@
+{
+  "session_id": "20250304_013247",
+  "model": "mock_model",
+  "timestamp": "2025-03-04T01:32:49.526506",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Tell me about intelligence"
+    },
+    {
+      "role": "assistant",
+      "content": "Error generating response: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}}"
+    },
+    {
+      "role": "user",
+      "content": "Tell me about intelligence"
+    },
+    {
+      "role": "assistant",
+      "content": "Error generating response: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}}"
+    },
+    {
+      "role": "user",
+      "content": "What is cyber security?"
+    },
+    {
+      "role": "assistant",
+      "content": "Error generating response: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}}"
+    }
+  ]
+}

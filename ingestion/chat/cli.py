@@ -309,16 +309,23 @@ class CipherCLI:
                     continue
                 
                 # Process query with any active filters
-                print(f"\n{Colors.BOLD}{Colors.MAGENTA}INTELLIGENCE RESPONSE:{Colors.RESET} Analyzing sources...")
+                print(f"\n{Colors.BOLD}{Colors.MAGENTA}INTELLIGENCE RESPONSE:{Colors.RESET}")
+                print(f"{Colors.CYAN}Analyzing query...{Colors.RESET}")
                 
                 try:
                     # Check if this might be a general question first
                     is_general = self.engine.is_general_question(user_input)
                     
+                    if is_general:
+                        print(f"{Colors.CYAN}Detected general question. Processing directly...{Colors.RESET}")
+                    
                     if active_topic and not is_general:
                         # Filter by topic
+                        print(f"{Colors.CYAN}Searching for sources on topic '{active_topic}'...{Colors.RESET}")
                         results = self.engine.search.search(user_input, filter_topic=active_topic)
+                        print(f"{Colors.CYAN}Found {len(results)} sources. Formatting context...{Colors.RESET}")
                         context = self.engine.format_context(results)
+                        print(f"{Colors.CYAN}Generating intelligence response...{Colors.RESET}")
                         response = self.engine.generate_response(user_input, context)
                         
                         # Update history manually since we're not using process_query
@@ -330,8 +337,11 @@ class CipherCLI:
                         active_topic = None
                     elif active_report and not is_general:
                         # Filter by report
+                        print(f"{Colors.CYAN}Searching within report '{active_report}'...{Colors.RESET}")
                         results = self.engine.search.search_by_report(user_input, report_id=active_report)
+                        print(f"{Colors.CYAN}Found {len(results)} sources. Formatting context...{Colors.RESET}")
                         context = self.engine.format_context(results)
+                        print(f"{Colors.CYAN}Generating intelligence response...{Colors.RESET}")
                         response = self.engine.generate_response(user_input, context)
                         
                         # Update history manually since we're not using process_query
@@ -343,7 +353,41 @@ class CipherCLI:
                         active_report = None
                     else:
                         # For general questions or standard RAG queries
-                        response, results = self.engine.process_query(user_input)
+                        if not is_general:
+                            print(f"{Colors.CYAN}Reformulating query for optimal retrieval...{Colors.RESET}")
+                            print(f"{Colors.CYAN}Searching for relevant intelligence sources...{Colors.RESET}")
+                            
+                        # Perform the query processing with progress indicators
+                        import threading
+                        import time
+                        
+                        # Setup a progress indicator thread
+                        stop_progress = threading.Event()
+                        
+                        def show_progress():
+                            stages = ["Analyzing", "Retrieving", "Processing", "Synthesizing"]
+                            stage_idx = 0
+                            while not stop_progress.is_set():
+                                print(f"{Colors.CYAN}{stages[stage_idx % len(stages)]} intelligence...{Colors.RESET}", end="\r")
+                                stage_idx += 1
+                                time.sleep(1.5)
+                        
+                        # Start progress thread if not in demo mode
+                        if not self.engine.demo_mode:
+                            progress_thread = threading.Thread(target=show_progress)
+                            progress_thread.daemon = True
+                            progress_thread.start()
+                        
+                        try:
+                            # Process the query
+                            response, results = self.engine.process_query(user_input)
+                        finally:
+                            # Stop the progress indicator
+                            if not self.engine.demo_mode:
+                                stop_progress.set()
+                                progress_thread.join(timeout=0.5)
+                                # Clear the progress line
+                                print(" " * 50, end="\r")
                         
                         # Reset any active filters for general questions
                         if is_general:
